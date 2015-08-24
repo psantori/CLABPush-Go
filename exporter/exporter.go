@@ -44,6 +44,9 @@ func NewRecord() *Record {
 	return new(Record)
 }
 
+// Once the exporter tool is installed, just invoke the command with the
+// appropriate parameters, like:
+// exporter -in yourdatabase.db -out youroutputfile.csv
 func main() {
 
 	// Parse the flags from the command line.
