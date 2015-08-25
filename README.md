@@ -72,19 +72,22 @@ Like the exporter, the uploader is not installed by default
 
     go install github.com/contactlab/clabpush-go/uploader
 
-Always assuming you are in the sample directory, you can use it with
+Assuming again you are in the sample directory, you can use it with
 
-    uploader -in export.csv -user your_username -secret your_secret -address your.sftp.server.address -directory incoming/xmlfiles -file exported.csv
+    uploader -in export.csv -user your_username -secret your_secret -address your.sftp.server -directory incoming/xmlfiles -file exported.csv
 
-The above will roughly do the equivalent of this
+That is a lot of stuff, and it will roughly do the equivalent of this
 
-    sftp your_username:your_secret@your.sftp.server.address:incoming/xmlfiles
+    sftp your_username:your_secret@your.sftp.server:incoming/xmlfiles
     put export.csv
+    rename export.csv exported.csv
+    ! touch ok.xml
     put ok.xml
-    quit
+    ! rm ok.xml
+    exit
 
 In other words, it will attemp to log in as *your_username* on the *your.sftp.server.address*
-and upload the *export.csv* file in the remote directory *incoming/xmlfiles*. It will
+and copy the *export.csv* file as *exported.csv* in the remote directory *incoming/xmlfiles*. It will
 also create an empty *ok.xml* file in the same directory.
 
 # Notes
