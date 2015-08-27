@@ -3,6 +3,7 @@ package server
 // APNHandler handles the request for devices using APNS.
 import (
 	"bytes"
+	"encoding/json"
 	"log"
 	"net/http"
 	"net/url"
@@ -47,14 +48,20 @@ func (handler *APNHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		if method == "PUT" {
 
+			// Attempt to retrieve body object.
+			data := NewData()
+
 			buffer := new(bytes.Buffer)
 			buffer.ReadFrom(r.Body)
-			data := buffer.String()
+			decoder := json.NewDecoder(buffer)
+			if err := decoder.Decode(data); err != nil {
+				w.WriteHeader(http.StatusBadRequest) // 400
+				log.Println("400 - Bad Request")
+				log.Println(err)
+				return
+			}
 
-			query := "REPLACE INTO devices (token, vendor, data) VALUES ('" + token + "', 'APN', '" + data + "')"
-			_, err := handler.ctx.db.Exec(query)
-
-			if err != nil {
+			if _, err := handler.ctx.db.Exec("REPLACE INTO devices (token, vendor, data, app_id, language) VALUES ($1, 'APN', $2, $3, $4)", token, data.UserInfo, data.CLab.AppID, data.CLab.Language); err != nil {
 				w.WriteHeader(http.StatusInternalServerError) // 500
 				log.Println("500 - Internal server error")
 				log.Println(err)
@@ -67,10 +74,7 @@ func (handler *APNHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		} else if method == "DELETE" {
 
-			query := "DELETE FROM device WHERE token = '" + token + "'"
-			_, err := handler.ctx.db.Exec(query)
-
-			if err != nil {
+			if _, err := handler.ctx.db.Exec("DELETE FROM devices WHERE token = $1", token); err != nil {
 				w.WriteHeader(http.StatusInternalServerError) // 500
 				log.Println("500 - Internal server error")
 				log.Println(err)
