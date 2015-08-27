@@ -80,8 +80,10 @@ type CSVRecord interface {
 
 // Device represents a row in the database.
 type Device struct {
-	Token  string
-	Vendor string
+	Token    string
+	Vendor   string
+	AppID    string
+	Language string
 }
 
 // ToCSV return a string slice to pass to the csv package writing functions.
@@ -89,6 +91,8 @@ func (r *Device) ToCSV() []string {
 	var record []string
 	record = append(record, r.Token)
 	record = append(record, r.Vendor)
+	record = append(record, r.AppID)
+	record = append(record, r.Language)
 	return record
 }
 
@@ -121,7 +125,7 @@ func prepareCSV(ctx *Context) error {
 
 	// Collect all the data we need from the database.
 	log.Println("Retrieving records...")
-	rows, err := ctx.In.Connection.Query("SELECT token, vendor FROM devices")
+	rows, err := ctx.In.Connection.Query("SELECT token, vendor, app_id, language FROM devices")
 	if err != nil {
 		return err
 	}
@@ -139,7 +143,7 @@ func prepareCSV(ctx *Context) error {
 	log.Println("Exporting records...")
 	for rows.Next() {
 		d := NewDevice()
-		rows.Scan(&d.Token, &d.Vendor)
+		rows.Scan(&d.Token, &d.Vendor, &d.AppID, &d.Language)
 		if err := writer.Write(d.ToCSV()); err != nil {
 			return err
 		}
