@@ -4,7 +4,6 @@ package server
 import (
 	"bytes"
 	"encoding/json"
-	"log"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -14,14 +13,14 @@ import (
 
 // APNHandler handles request for the apn path.
 type APNHandler struct {
-	ctx    *AppContext
-	regexp *regexp.Regexp
+	Handler                // Anonymous inner Handler.
+	regexp  *regexp.Regexp // Regexp to match the URL.
 }
 
 // NewAPNHandler return an handler with the given application context.
 func NewAPNHandler(ctx *AppContext) *APNHandler {
 	regexp := regexp.MustCompile(`/apn/devices/(?P<token>[\w]*)`)
-	return &APNHandler{ctx: ctx, regexp: regexp}
+	return &APNHandler{Handler: Handler{Ctx: ctx}, regexp: regexp}
 }
 
 func (handler *APNHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -30,9 +29,8 @@ func (handler *APNHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	key := r.Header.Get("Authorization")
 
-	if !handler.ctx.ValidateAuthToken(key) {
-		w.WriteHeader(http.StatusUnauthorized) // 401
-		log.Println("401 - Unauthorized")
+	if !handler.Ctx.ValidateAuthToken(key) {
+		handler.RenderHTTPStatus(w, http.StatusUnauthorized, nil) // 401
 		return
 	}
 
@@ -55,38 +53,29 @@ func (handler *APNHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			buffer.ReadFrom(r.Body)
 			decoder := json.NewDecoder(buffer)
 			if err := decoder.Decode(data); err != nil {
-				w.WriteHeader(http.StatusBadRequest) // 400
-				log.Println("400 - Bad Request")
-				log.Println(err)
+				handler.RenderHTTPStatus(w, http.StatusBadRequest, err) // 400
 				return
 			}
 
-			if _, err := handler.ctx.db.Exec("REPLACE INTO devices (token, vendor, data, app_id, language) VALUES ($1, 'APN', $2, $3, $4)", token, data.UserInfo, data.CLab.AppID, data.CLab.Language); err != nil {
-				w.WriteHeader(http.StatusInternalServerError) // 500
-				log.Println("500 - Internal server error")
-				log.Println(err)
+			if _, err := handler.Ctx.db.Exec("REPLACE INTO devices (token, vendor, data, app_id, language) VALUES ($1, 'APN', $2, $3, $4)", token, data.UserInfo, data.CLab.AppID, data.CLab.Language); err != nil {
+				handler.RenderHTTPStatus(w, http.StatusInternalServerError, err) // 500
 				return
 			}
 
-			w.WriteHeader(http.StatusCreated) // 201
-			log.Println("201 - Created")
+			handler.RenderHTTPStatus(w, http.StatusCreated, nil) // 201
 			return
 
 		} else if method == "DELETE" {
 
-			if _, err := handler.ctx.db.Exec("DELETE FROM devices WHERE token = $1", token); err != nil {
-				w.WriteHeader(http.StatusInternalServerError) // 500
-				log.Println("500 - Internal server error")
-				log.Println(err)
+			if _, err := handler.Ctx.db.Exec("DELETE FROM devices WHERE token = $1", token); err != nil {
+				handler.RenderHTTPStatus(w, http.StatusInternalServerError, err) // 500
 				return
 			}
 
-			w.WriteHeader(http.StatusOK) // 200
-			log.Println("200 - OK")
+			handler.RenderHTTPStatus(w, http.StatusOK, nil) // 200
 			return
 		}
 	}
 
-	log.Println("400 - Bad Request")
-	w.WriteHeader(http.StatusBadRequest) // 400
+	handler.RenderHTTPStatus(w, http.StatusBadRequest, nil) // 400
 }

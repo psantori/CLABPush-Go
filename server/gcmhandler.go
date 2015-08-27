@@ -4,7 +4,6 @@ package server
 import (
 	"bytes"
 	"encoding/json"
-	"log"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -14,14 +13,14 @@ import (
 
 // GCMHandler handles request for the GCM path.
 type GCMHandler struct {
-	ctx    *AppContext    // Shared AppContext.
-	regexp *regexp.Regexp // Regexp to match the URL.
+	Handler                // Anonymous inner Handler.
+	regexp  *regexp.Regexp // Regexp to match the URL.
 }
 
 // NewGCMHandler return an handler with the given application context.
 func NewGCMHandler(ctx *AppContext) *GCMHandler {
 	regexp := regexp.MustCompile(`/gcm/devices/(?P<token>[\w:-]*)`)
-	return &GCMHandler{ctx: ctx, regexp: regexp}
+	return &GCMHandler{Handler: Handler{Ctx: ctx}, regexp: regexp}
 }
 
 func (handler *GCMHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -29,9 +28,8 @@ func (handler *GCMHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Get the authorization key entry from the header and validate it. Send status 401 if
 	// the key is invalid.
 	key := r.Header.Get("Authorization")
-	if !handler.ctx.ValidateAuthToken(key) {
-		w.WriteHeader(http.StatusUnauthorized) // 401
-		log.Println("401 - Unauthorized")
+	if !handler.Ctx.ValidateAuthToken(key) {
+		handler.RenderHTTPStatus(w, http.StatusUnauthorized, nil)
 		return
 	}
 
@@ -46,45 +44,37 @@ func (handler *GCMHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "PUT" {
 
 			// Get the request body and unmarshal it.
+			data := NewData()
+
 			buffer := new(bytes.Buffer)
 			buffer.ReadFrom(r.Body)
 			decoder := json.NewDecoder(buffer)
 
-			data := NewData()
 			if err := decoder.Decode(data); err != nil {
-				w.WriteHeader(http.StatusBadRequest) // 400
-				log.Println("400 - Bad Request")
-				log.Println(err)
+				handler.RenderHTTPStatus(w, http.StatusBadRequest, err)
 				return
 			}
 
 			// Create/update the record in the database.
-			if _, err := handler.ctx.db.Exec("REPLACE INTO devices (token, vendor, data, app_id, language) VALUES ($1, 'GCM', $2, $3, $4)", token, data.UserInfo, data.CLab.AppID, data.CLab.Language); err != nil {
-				w.WriteHeader(http.StatusInternalServerError) // 500
-				log.Println("500 - Internal server error")
-				log.Println(err)
+			if _, err := handler.Ctx.db.Exec("REPLACE INTO devices (token, vendor, data, app_id, language) VALUES ($1, 'GCM', $2, $3, $4)", token, data.UserInfo, data.CLab.AppID, data.CLab.Language); err != nil {
+				handler.RenderHTTPStatus(w, http.StatusInternalServerError, err)
 				return
 			}
 
-			w.WriteHeader(http.StatusCreated) // 201
-			log.Println("201 - Created")
+			handler.RenderHTTPStatus(w, http.StatusCreated, nil)
 			return
 
 		} else if r.Method == "DELETE" {
 
-			if _, err := handler.ctx.db.Exec("DELETE FROM devices WHERE token = $1", token); err != nil {
-				w.WriteHeader(http.StatusInternalServerError) // 500
-				log.Println("500 - Internal server error")
-				log.Println(err)
+			if _, err := handler.Ctx.db.Exec("DELETE FROM devices WHERE token = $1", token); err != nil {
+				handler.RenderHTTPStatus(w, http.StatusInternalServerError, err)
 				return
 			}
 
-			w.WriteHeader(http.StatusCreated) // 201
-			log.Println("200 - OK")
+			handler.RenderHTTPStatus(w, http.StatusOK, nil)
 			return
 		}
 	}
 
-	log.Println("400 - Bad Request")
-	w.WriteHeader(http.StatusBadRequest) // 400
+	handler.RenderHTTPStatus(w, http.StatusBadRequest, nil)
 }
