@@ -8,8 +8,8 @@ type CLabInfo struct {
 
 // Data represents the JSON data uploaded in the request body.
 type Data struct {
-	CLab     CLabInfo // Application info dictionary.
-	UserInfo string   // Optional user info, we threat this as string.
+	CLab     CLabInfo    // Application info dictionary.
+	UserInfo interface{} // Optional user info, we threat this as string.
 }
 
 // NewData returns a new Data.
