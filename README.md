@@ -22,7 +22,7 @@ go get github.com/contactlab/clabpush-go
 Then install the module with
 
 ```bash
-go install github.com/contactlab/clabpush.go
+go install github.com/contactlab/clabpush-go
 ```
 
 Done.
@@ -38,6 +38,11 @@ cd $GOPATH/src/github.com/contactlab/clabpush-go/sample
 ```
 
 Inside you'll find a `config.json.sample` file with a few parameters for the web application and a `clabpush.db.sample` SQLite database with a single devices table with an handful of columns. In order to launch the web server, make a copy of those files removing the `.sample` extension and modify them accordingly with your preferences.
+
+```bash
+cp clabpush.db.sample clabpush.db
+cp config.json.sample config.json
+```
 
 To start the app, just use the `clabpush-go` command.
 
@@ -77,7 +82,13 @@ Done!
 
 ### Upload the csv file to ContactLab
 
-Like the exporter, the uploader is not installed by default
+Like the exporter, the uploader is not installed by default, however it depends on the sftp module, that needs to be fetched first.
+
+```bash
+go get github.com/pkg/sftp
+```
+
+Then you can install the uploader
 
 ```bash
 go install github.com/contactlab/clabpush-go/uploader
@@ -86,7 +97,7 @@ go install github.com/contactlab/clabpush-go/uploader
 Assuming again you are in the sample directory, you can use it with
 
 ```bash
-uploader -in export.csv -user your_username -secret your_secret -address sftp.example.com -directory incoming/csvfiles -file exported.csv
+uploader -in export.csv -user your_username -secret your_secret -address sftp.example.com:22 -directory incoming/csvfiles -file exported.csv
 ```
 
 That is a lot of stuff, and it will roughly do the equivalent of this
@@ -101,7 +112,7 @@ put ok.xml
 exit
 ```
 
-In other words, it will attempt to log in as *username* on the *sftp.example.com* and copy the `export.csv` file as `exported.csv` in the remote directory `incoming/csvfiles` (that needs to be already there). It will also create an empty `ok.xml` file in the same directory.
+In other words, it will attempt to log in as *username* on the *sftp.example.com* port *22* and copy the `export.csv` file as `exported.csv` in the remote directory `incoming/csvfiles` (that needs to be already there). It will also create an empty `ok.xml` file in the same directory.
 
 ## Acknowledgments
 
