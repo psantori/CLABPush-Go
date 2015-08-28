@@ -1,76 +1,94 @@
 # CLABPush-Go
+**ContactLab Push Notifications sample backend app for client push notifications management.**
 
-ContactLab Push Notifications sample backend app for client push notifications management.
+This repository contains a simple GO web application for [ContactLab](http://www.contactlab.com) push notifications management. It works in conjunction with [CLABPush-Objective-C](https://github.com/contactlab/CLABPush-Objective-C) / [CLABPush-Swift](https://github.com/contactlab/CLABPush-Swift) for iOS and [CLABPush-Android](https://github.com/contactlab/CLABPush-Android) for Android.
 
-This repository contains a sample web app written in Go for [ContactLab](http://www.contactlab.com) push notifications management. It works in conjunction with the [CLABPush-Objective-C](https://github.com/contactlab/CLABPush-Objective-C) or [CLABPush-Swift](https://github.com/contactlab/CLABPush-Swift) sample code for iOS and [CLABPush-Android](https://github.com/contactlab/CLABPush-Android) for Android.
+The project explains how to manage device registration for iOS and Android and the process needed to synch data with [ContactLab](http://www.contactlab.com) backend. 
 
-The project is composed by simple Go web application that will serve the requests from the Android and iOS applications and store the registration data in a database. In the package are included an exporter tool to export database record in csv format and an uploader tool to upload said file on the [ContactLab](http://www.contactlab.com) backend.
-
-To facilitate testing, the project also includes a sample directory with a ready configuration file and an SQLite database. By launching the `clabpush-go` application from this directory, you have the sample app up and running.
 
 ## Disclaimer
-This project does not represent a final product and is provided *as is* for demonstration only. For additional information or support, get in touch with [ContactLab](http://www.contactlab.com).
+This project does not represent a final product and is provided *as is* for demonstration use only. For additional information or support, get in touch with [ContactLab](http://www.contactlab.com).
 
-## Installation
+## Install
 
-First pull the CLABPush-Go project with
+First pull the CLABPush-Go project:
 
 ```bash
 go get github.com/contactlab/clabpush-go
 ```
 
-Then install the module with
+Then install the module:
 
 ```bash
 go install github.com/contactlab/clabpush-go
 ```
 
-Done.
+## How to use
 
-## Usage
+### Quick start
 
-### Web application
+For a quick start, we provided a sample directory with a SQLite database and pre-configured settings. 
 
-If you want to run the app *as is*, move inside the sample folder in the project directory
+Move to the project directory:
 
 ```bash
 cd $GOPATH/src/github.com/contactlab/clabpush-go/sample
 ```
 
-Inside you'll find a `config.json.sample` file with a few parameters for the web application and a `clabpush.db.sample` SQLite database with a single devices table with an handful of columns. In order to launch the web server, make a copy of those files removing the `.sample` extension and modify them accordingly with your preferences.
+Copy and rename the sample files: 
 
 ```bash
 cp clabpush.db.sample clabpush.db
 cp config.json.sample config.json
 ```
 
-To start the app, just use the `clabpush-go` command.
+The SQLte database `clabpush.db` has the following columns:
+
+- `id` an automatic incremental identifier 
+- `token` the device registration token 
+- `vendor` one of the following values: 
+ - `apn` for Apple Push Notification service (iOS)
+ - `gcn` for Google Cloud Messaging (Android)
+- `app_id` your mobile app Bundle Identifier (iOS) or Package Name (Android)
+- `user_info` an optional JSON dictionary for user profiling
+
+Edit `config.json` according to your preferences: 
+
+- `address` your web application IP address
+- `port` your web application port
+- `authKey` the authentication key to match your mobile app device registration
+- `dbPath` yoour local SQLite database
+
+To start the web application type:
 
 ```bash
 clabpush-go
 ```
 
-### Exporting to csv
+### Synch data with ContactLab
 
-The exporter is not automatically installed when you install the `clabpush-go` application, but you can sort it out with
+The easiest method to synch data with [ContactLab](http://www.contactlab.com) is by exporting the database in a comma-separated values (CSV) file, and uploading it to a SFTP server where [ContactLab](http://www.contactlab.com) backend will take care of.   
+
+### Exporting to CSV
+
+To install the exporter type: 
 
 ```bash
 go install github.com/contactlab/clabpush-go/exporter
 ```
 
-Once you have the tool installed, assuming you are in the sample folder of the project, you can just do
+To start the exporter, if you are using our sample folder, type:
 
 ```bash
 exporter -in clabpush.db -out export.csv
 ```
-
-You can also pass in an username and a password if the database is protected
+If you database requires authentication you can add username/password:  
 
 ```bash
 exporter -in clabpush.db -out export.csv -user your_username -password your_password
 ```
 
-You should see in the console something along these lines
+If everything is correct you should see something like this: 
 
 ```bash
 Connecting to clabpush.db...
@@ -80,27 +98,27 @@ Exporting records...
 Done!
 ```
 
-### Upload the csv file to ContactLab
+### Upload the CSV
 
-Like the exporter, the uploader is not installed by default, however it depends on the sftp module, that needs to be fetched first.
+You can use your own favorite SFTP upload method or our simple uploader. To run the uploader you need to pull the SFTP module: 
 
 ```bash
 go get github.com/pkg/sftp
 ```
 
-Then you can install the uploader
+Then you can install the uploader:
 
 ```bash
 go install github.com/contactlab/clabpush-go/uploader
 ```
 
-Assuming again you are in the sample directory, you can use it with
+To upload the CSV file, if you are in the sample folder, type:
 
 ```bash
 uploader -in export.csv -user your_username -secret your_secret -address sftp.example.com:22 -directory incoming/csvfiles -file exported.csv
 ```
 
-That is a lot of stuff, and it will roughly do the equivalent of this
+This is the same as the following bash script:
 
 ```bash
 sftp your_username:your_secret@sftp.example.com:incoming/csvfiles
@@ -112,7 +130,11 @@ put ok.xml
 exit
 ```
 
-In other words, it will attempt to log in as *username* on the *sftp.example.com* port *22* and copy the `export.csv` file as `exported.csv` in the remote directory `incoming/csvfiles` (that needs to be already there). It will also create an empty `ok.xml` file in the same directory.
+In other words, it will attempt to log in as *username* on the *sftp.example.com* port *22* and copy the `export.csv` file as `exported.csv` in the remote directory `incoming/csvfiles`. To acknowledge the upload, it will create and upload an empty `ok.xml` file.
+
+### Schedule 
+
+According to your requirements, you can schedule a job to run periodically the exporter and uploader. 
 
 ## Acknowledgments
 
