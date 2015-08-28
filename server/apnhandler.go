@@ -63,7 +63,7 @@ func (handler *APNHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			if _, err := handler.Ctx.db.Exec("REPLACE INTO devices (token, vendor, data, app_id, language) VALUES ($1, 'APN', $2, $3, $4)", token, userInfo, data.CLab.AppID, data.CLab.Language); err != nil {
+			if _, err := handler.Ctx.db.Exec("REPLACE INTO devices (token, vendor, user_info, app_id, language) VALUES ($1, 'APN', $2, $3, $4)", token, userInfo, data.CLab.AppID, data.CLab.Language); err != nil {
 				handler.RenderHTTPStatus(w, http.StatusInternalServerError, err) // 500
 				return
 			}

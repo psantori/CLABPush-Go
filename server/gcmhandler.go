@@ -62,7 +62,7 @@ func (handler *GCMHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Create/update the record in the database.
-			if _, err := handler.Ctx.db.Exec("REPLACE INTO devices (token, vendor, data, app_id, language) VALUES ($1, 'GCM', $2, $3, $4)", token, userInfo, data.CLab.AppID, data.CLab.Language); err != nil {
+			if _, err := handler.Ctx.db.Exec("REPLACE INTO devices (token, vendor, user_info, app_id, language) VALUES ($1, 'GCM', $2, $3, $4)", token, userInfo, data.CLab.AppID, data.CLab.Language); err != nil {
 				handler.RenderHTTPStatus(w, http.StatusInternalServerError, err)
 				return
 			}
