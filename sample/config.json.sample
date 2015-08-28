@@ -1,6 +1,6 @@
 {
-	"address":"127.0.0.1",
-	"port": 8080,
+	"address":"0.0.0.0",
+	"port": 80,
 	"authKey":"0123456789abcdef",
 	"dbPath":"clabpush.db"
 }
