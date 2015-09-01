@@ -72,10 +72,4 @@ func main() {
 	}
 	defer sftpFile.Close()
 	sftpFile.ReadFrom(reader)
-
-	okFile, err := sftp.OpenFile(filepath.Join(*directory, "ok.xml"), os.O_WRONLY|os.O_CREATE)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer okFile.Close()
 }
