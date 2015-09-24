@@ -137,7 +137,6 @@ According to your requirements, you can schedule a job to run periodically the e
 
 - [ContactLab](http://www.contactlab.com)
 - [DIMENSION](http://www.dimension.it)
-- Paolo Santori, ContactLab
-- Nicolò Tosi, DIMENSION
-- Matteo Gavagnin, DIMENSION [@macteo](http://twitter.com/macteo)
-- Daniele Dalledonne, DIMENSION
+    - Matteo Gavagnin [@macteo](http://twitter.com/macteo)
+    - Nicolò Tosi  
+    - Daniele Dalledonne
