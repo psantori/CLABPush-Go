@@ -133,7 +133,7 @@ func prepareCSV(ctx *Context) error {
 
 	// Open the output file.
 	log.Printf("Opening %s for output...", ctx.Out.CSVFile)
-	file, err := os.OpenFile(ctx.Out.CSVFile, os.O_WRONLY|os.O_CREATE, 0666)
+	file, err := os.OpenFile(ctx.Out.CSVFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		return err
 	}
