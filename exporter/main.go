@@ -172,7 +172,9 @@ func (ex *FieldExporter) findValueAtPath(path []string, info map[string]interfac
 	for i, name := range path {
 		if i == last {
 			v := m[name]
-			if s, ok := v.(string); ok {
+			if v == nil {
+				return ""
+			} else if s, ok := v.(string); ok {
 				return s
 			} else if f, ok := v.(float64); ok {
 				return strconv.FormatFloat(f, 'f', -1, 64)
