@@ -7,6 +7,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/mattn/go-sqlite3"
@@ -172,6 +173,12 @@ func (ex *FieldExporter) findValueAtPath(path []string, info map[string]interfac
 		if i == last {
 			if s, ok := m[name].(string); ok {
 				return s
+			} else if f, ok := m[name].(float64); ok {
+				return strconv.FormatFloat(f, 'f', -1, 64)
+			} else if n, ok := m[name].(int64); ok {
+				return strconv.FormatInt(n, 10)
+			} else if b, ok := m[name].(bool); ok {
+				return strconv.FormatBool(b)
 			}
 		} else {
 			if next, ok := m[name].(map[string]interface{}); ok {
