@@ -156,6 +156,7 @@ type FieldExporter struct {
 // NewFieldExporter creates a new FieldExporter with the given export fields.
 func NewFieldExporter(fields []string) *FieldExporter {
 	exporter := new(FieldExporter)
+	exporter.Fields = make([][]string, len(fields))
 	for i, path := range fields {
 		exporter.Fields[i] = strings.Split(path, ".")
 	}
