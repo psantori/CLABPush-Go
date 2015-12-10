@@ -171,14 +171,22 @@ func (ex *FieldExporter) findValueAtPath(path []string, info map[string]interfac
 	last := (len(path) - 1)
 	for i, name := range path {
 		if i == last {
-			if s, ok := m[name].(string); ok {
+			v := m[name]
+			if s, ok := v.(string); ok {
 				return s
-			} else if f, ok := m[name].(float64); ok {
+			} else if f, ok := v.(float64); ok {
 				return strconv.FormatFloat(f, 'f', -1, 64)
-			} else if n, ok := m[name].(int64); ok {
+			} else if n, ok := v.(int64); ok {
 				return strconv.FormatInt(n, 10)
-			} else if b, ok := m[name].(bool); ok {
+			} else if b, ok := v.(bool); ok {
 				return strconv.FormatBool(b)
+			} else {
+				// Attemp to convert back the value to JSON
+				j, err := json.Marshal(v)
+				if err != nil {
+					return ""
+				}
+				return string(j)
 			}
 		} else {
 			if next, ok := m[name].(map[string]interface{}); ok {
