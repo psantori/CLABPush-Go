@@ -30,7 +30,7 @@ var dbName = flag.String("dbname", "clabpush.exporter.SQLITE", "the database nam
 // batchfile is the name for the sftp batch file that will be generated.
 var batchFile = flag.String("bfile", "sftp_batch_file", "the sftp batch file for the upload")
 
-var configFile = flag.String("cfg", "config.json", "the configuration file")
+var configFile = flag.String("c", "config.json", "the configuration file")
 
 // Config holds the configuration options for the exporter.
 type config struct {
@@ -38,7 +38,7 @@ type config struct {
 }
 
 // LoadConfig returns a Config struct from a config file.
-func LoadConfig(path string) *config {
+func loadConfig(path string) *config {
 
 	c := &config{}
 
@@ -65,16 +65,16 @@ func main() {
 	// Parse the flags from the command line.
 	flag.Parse()
 
-	cfg := LoadConfig(*configFile)
+	cfg := loadConfig(*configFile)
 
 	ctx := &Context{}
 
 	// Use FieldsExporter if there are export fields. Default to RawExporter.
 	if len(cfg.Fields) > 0 {
-		exporter := new(RawExporter)
+		exporter := NewFieldExporter(cfg.Fields)
 		ctx.Exporter = exporter
 	} else {
-		exporter := NewFieldExporter(cfg.Fields)
+		exporter := new(RawExporter)
 		ctx.Exporter = exporter
 	}
 
