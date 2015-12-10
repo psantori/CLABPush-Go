@@ -98,6 +98,35 @@ Exporting records...
 Done
 ```
 
+#### Export custom user info values
+
+You might want to only export specific user info's fields into the CSV. Let's suppose you have the following user info JSON dictionary
+
+```json
+{
+  "coords":{
+    "lat":46.17,
+    "lng":10.45,
+    "elevation":204
+  },
+  "timestamp":1449766914
+}
+```
+and you only want to export the `elevation` and `timestamp`fields. You just need
+to create a JSON configuration file for the exporter, with a array named `fields` containing the path of the fields you want to expose.
+
+```json
+{
+  "fields":["coords.elevation","timestamp"]
+}
+```
+You can pass the configuration file to the exporter with the `-c` option.
+
+```bash
+exporter -c config.json
+```
+By default, the exporter will look for a `config.json` in its working directory so you might find convenient to just add the fields entry in the CLABPush-Go config files and let the exporter figure it itself.
+
 ### Upload the CSV
 
 You can use your own favorite SFTP upload method or our simple uploader. To run the uploader you need to pull the SFTP module:
