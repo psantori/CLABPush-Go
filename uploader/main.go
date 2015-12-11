@@ -66,7 +66,7 @@ func main() {
 	defer sftp.Close()
 
 	// Upload over SFTP.
-	sftpFile, err := sftp.OpenFile(filepath.Join(*directory, *file), os.O_WRONLY|os.O_CREATE)
+	sftpFile, err := sftp.OpenFile(filepath.Join(*directory, *file), os.O_WRONLY|os.O_CREATE|os.O_TRUNC)
 	if err != nil {
 		log.Fatalln(err)
 	}
